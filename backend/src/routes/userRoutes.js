@@ -2,7 +2,9 @@ const express = require("express");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const router = express.Router();
+
 const User = require("../models/User");
+const auth = require("../middleware/auth"); // ✅ JWT middleware
 
 /* =========================
    CREATE USER (POST)
@@ -41,9 +43,9 @@ router.post("/", async (req, res) => {
 });
 
 /* =========================
-   GET ALL USERS (GET)
+   GET ALL USERS (GET) 🔐 PROTECTED
    ========================= */
-router.get("/", async (req, res) => {
+router.get("/", auth, async (req, res) => {
   try {
     const users = await User.findAll({
       attributes: { exclude: ["password"] },
