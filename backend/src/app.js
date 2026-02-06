@@ -1,15 +1,44 @@
 const express = require("express");
 const app = express();
 
-// middleware
+/* =========================
+   GLOBAL MIDDLEWARE
+   ========================= */
+
+// Parse JSON bodies
 app.use(express.json());
 
-// 🔥 HEALTH CHECK
+// Parse URL-encoded bodies
+app.use(express.urlencoded({ extended: true }));
+
+/* =========================
+   GLOBAL REQUEST SAFETY
+   Prevents req.body undefined → 500 errors
+   ========================= */
+app.use((req, res, next) => {
+  if (
+    ["POST", "PUT", "PATCH"].includes(req.method) &&
+    req.headers["content-type"] &&
+    req.headers["content-type"].includes("application/json") &&
+    !req.body
+  ) {
+    return res.status(400).json({
+      message: "Invalid or missing JSON body",
+    });
+  }
+  next();
+});
+
+/* =========================
+   HEALTH CHECK
+   ========================= */
 app.get("/health", (req, res) => {
   res.status(200).json({ status: "ok" });
 });
 
-// routes
+/* =========================
+   ROUTES
+   ========================= */
 const userRoutes = require("./routes/userRoutes");
 const studentRoutes = require("./routes/studentRoutes");
 const teacherRoutes = require("./routes/teacherRoutes");
@@ -36,8 +65,9 @@ app.use("/api/reports/results", resultReportRoutes);
 app.use("/api/dashboard", dashboardRoutes);
 app.use("/api/dashboard/admin", adminDashboardRoutes);
 
-
-// test route
+/* =========================
+   ROOT TEST ROUTE
+   ========================= */
 app.get("/", (req, res) => {
   res.send("School Management System Backend is running 🚀");
 });
